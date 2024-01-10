@@ -1,7 +1,12 @@
 from flask import *
 from werkzeug.utils import secure_filename
+from modules.checkUpload import allowed_file
+
+UPLOAD_FOLDER = '/uploads'
 
 app = Flask(__name__,template_folder='template') 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.secret_key = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 
 
@@ -9,18 +14,20 @@ app = Flask(__name__,template_folder='template')
 def main(): 
     return render_template("index.html") 
 
-@app.route('/')
-def gen_report():
-    
-    return 0
 
-@app.route('/upload', methods=['POST'])
+@app.route('/uploads', methods=['POST'])
 def upload(): 
-    if request.method == 'POST': 
-        files = request.files.getlist("file") 
-        for file in files: 
-            file.save(file.filename)
-        return "<h1>Files Uploaded Successfully.!</h1>"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect('/')
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect('/')
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return redirect(url_for('download_file', name=filename))
 
 if __name__ == '__main__': 
     app.run(debug=True) 

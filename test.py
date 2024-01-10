@@ -1,5 +1,3 @@
-
-
 folder_path = '/uploads/'
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
